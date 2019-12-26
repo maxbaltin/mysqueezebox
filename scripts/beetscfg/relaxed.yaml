@@ -1,0 +1,20 @@
+#https://beets.readthedocs.io/en/v1.4.7/reference/config.html
+# This is additional non-interactive config with:
+# - few tags requirements on match with even more relaxed thresholds
+#
+import:
+    quiet: yes
+    move: yes
+    write: yes
+    quiet_fallback: skip
+    none_rec_action: skip
+    default_action: skip
+    duplicate_action: remove
+    detail: yes
+    singletons: yes
+match:
+    strong_rec_thresh: 0.50
+    medium_rec_thresh: 0.80
+    rec_gap_thresh: 0.01
+    required: title
+asciify_paths: yes
