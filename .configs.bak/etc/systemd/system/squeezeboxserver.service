@@ -1,0 +1,24 @@
+[Unit]
+Description=Squeezebox Server (LMS)
+#After=network-online.target
+#Wants=network-online.target
+#After=nss-lookup.target
+#Wants=nss-lookup.target
+#After=getty.target
+#Wants=getty.target
+#After=time-sync.target
+#Wants=time-sync.target
+After=multi-user.target
+Wants=multi-user.target
+
+[Service]
+Type=simple
+#Type=forking
+#User=squeezeboxserver
+User=root
+#ExecStartPre=sleep 10
+ExecStart=/usr/sbin/squeezeboxserver --prefsdir /var/lib/squeezeboxserver/prefs --logfile /var/log/squeezeboxserver/error.log --logdir /var/log/squeezeboxserver/ --cachedir /var/lib/squeezeboxserver/cache --user root --diag --cliport 9090 --charset utf8
+#ExecStart=/usr/sbin/squeezeboxserver --prefsdir /var/lib/squeezeboxserver/prefs --logfile /var/log/squeezeboxserver/error.log --logdir /var/log/squeezeboxserver/ --cachedir /var/lib/squeezeboxserver/cache --user squeezeboxserver --diag --cliport 9090  --charset utf8
+
+[Install]
+WantedBy=multi-user.target

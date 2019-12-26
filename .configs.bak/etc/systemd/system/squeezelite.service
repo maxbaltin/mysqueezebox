@@ -1,0 +1,45 @@
+[Unit]
+Description=squeezelite
+Requires=squeezeboxserver.service
+After=multi-user.target squeezeboxserver.service
+
+#Requires=dietpi-boot.service dietpi-ramdisk.service squeezeboxserver.service
+#After=network.target squeezeboxserver.service dietpi-boot.service dietpi-ramdisk.service dietpi-ramlog.service dietpi-postboot.service
+
+[Service]
+Type=simple
+#Environment="SBSHOST=localhost"
+Environment="SLNAME=DietPiBox"
+Environment="MACADDR=b8:27:eb:d7:e7:ae"
+#Environment="MACADDR=0c:5b:8f:27:9a:64"
+Environment="SERVER=127.0.0.1"
+#Environment="SERVER=192.168.7.100"
+Environment="ALSAPRM=4096:1024:16:0"
+Environment="DEVTOUT=5"
+Environment="PIDFILE=/var/run/squeezelite.pid"
+Environment="LOGFILE=/tmp/squeezelite.log"
+Environment="LOGLVLS=debug"
+
+
+#ExecStartPre=/bin/sleep 20
+
+# -d <log>=<level>      Set logging level, logs: all|slimproto|stream|decode|output, level: info|debug|sdebug
+# -d slimproto=error -d stream=debug -d decode=error -d output=error
+# -m MACADDR
+#    eth0: b8:27:eb:d7:e7:ae
+#    eth1: 0c:5b:8f:27:9a:64
+#    wlan0: b0:48:7a:91:e7:7f
+# -M model
+# -s server[:port] to connect
+
+#/opt/squeezelite-lib/squeezelite
+#/usr/bin/squeezelite
+
+ExecStart=/opt/squeezelite-lib/squeezelite -a ${ALSAPRM} -C ${DEVTOUT} -m '${MACADDR}' -n '${SLNAME}' -s ${SERVER} -P ${PIDFILE} -f ${LOGFILE} -d stream=${LOGLVLS}
+
+#ExecStartPost=/bin/sleep 10
+#ExecStartPost=/opt/squeezebox/scripts/slfunctions.sh clear_playlist
+#ExecStartPost=/opt/squeezebox/scripts/slfunctions.sh play_random 10 100
+
+[Install]
+WantedBy=multi-user.target

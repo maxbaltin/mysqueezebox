@@ -1,0 +1,35 @@
+#/etc/network/interfaces
+#Please use DietPi-Config to modify network settings.
+
+# Local
+auto lo
+iface lo inet loopback
+
+# Wifi
+allow-hotplug wlan0
+iface wlan0 inet static
+address 192.168.41.1
+netmask 255.255.255.0
+#gateway 192.168.0.1
+#dns-nameservers 8.8.8.8 8.8.4.4
+dns-search local
+dns-nameservers 192.168.41.1
+up sleep 5; systemctl start hostapd
+post-down systemctl stop hostapd
+
+# Hilink modem
+allow-hotplug eth1
+iface eth1 inet dhcp
+#iface eth0 inet static
+address 192.168.8.100
+netmask 255.255.255.0
+gateway 192.168.8.1
+
+# Ethernet
+allow-hotplug eth0
+iface eth0 inet dhcp
+address 192.168.1.63
+netmask 255.255.255.0
+#gateway 192.168.1.1
+#dns-nameservers 127.0.0.1
+up iptables-restore < /etc/iptables.ipv4.nat

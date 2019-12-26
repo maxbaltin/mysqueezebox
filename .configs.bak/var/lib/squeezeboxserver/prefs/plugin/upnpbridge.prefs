@@ -1,0 +1,20 @@
+---
+_ts_autorun: 1534006855
+_ts_autosave: 1533826850
+_ts_bin: 1533827207
+_ts_configfile: 1533826850
+_ts_debugs: 1533826850
+_ts_eraselog: 1533826850
+_ts_logging: 1533826850
+_ts_opts: 1533826850
+_ts_profilesURL: 1533826850
+_version: 0
+autorun: 0
+autosave: 1
+bin: squeeze2upnp-armv6hf
+configfile: upnpbridge.xml
+debugs: ''
+eraselog: 0
+logging: 0
+opts: ''
+profilesURL: http://sourceforge.net/projects/lms-to-upnp/files/profiles.xml/download

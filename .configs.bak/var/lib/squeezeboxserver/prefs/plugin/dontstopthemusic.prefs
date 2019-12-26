@@ -1,0 +1,26 @@
+---
+_client:00:00:00:00:00:00:
+  _ts_provider: 1547307137
+  _version: 0
+  provider: PLUGIN_DEEZER_SMART_RADIO
+_client:08:60:6e:e3:88:83:
+  _ts_provider: 1534023441
+  _version: 0
+  provider: PLUGIN_DEEZER_FLOW
+_client:0c:5b:8f:27:9a:64:
+  _ts_provider: 1546843675
+  _version: 0
+  provider: PLUGIN_DEEZER_SMART_RADIO
+_client:b0:48:7a:91:e7:7f:
+  _ts_provider: 1546424390
+  _version: 0
+  provider: PLUGIN_DEEZER_SMART_RADIO
+_client:b8:27:eb:d7:e7:ae:
+  _ts_provider: 1543662951
+  _version: 0
+  provider: PLUGIN_DEEZER_SMART_RADIO
+_client:dc:53:60:d8:74:d0:
+  _ts_provider: 1534495136
+  _version: 0
+  provider: PLUGIN_DEEZER_FLOW
+_version: 0

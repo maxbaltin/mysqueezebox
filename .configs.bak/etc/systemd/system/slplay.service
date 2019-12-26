@@ -1,0 +1,14 @@
+[Unit]
+Description=slplay
+Requires=squeezeboxserver.service squeezelite.service
+After=multi-user.target squeezeboxserver.service squeezelite.service
+
+[Service]
+Type=forking
+##/var/run/squeezelite.pid
+#ExecStartPre=/bin/sleep 10
+#ExecStart=/opt/squeezebox/scripts/slfunctions.sh clear_playlist
+ExecStart=/opt/squeezebox/scripts/slfunctions.sh play_random 10 100
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,34 @@
+# String file for DirectPlay plugin
+
+PLUGIN_DIRECTPLAY
+	EN	DirectPlay
+
+PLUGIN_DIRECTPLAY_ALBUM
+	EN	Play Album
+
+PLUGIN_DIRECTPLAY_TRACK
+	EN	Play Track
+
+PLUGIN_DIRECTPLAY_ARTIST
+	EN	Play Artist
+
+PLUGIN_DIRECTPLAY_ALBUM_PLAY
+	EN	Playing Album ...
+
+PLUGIN_DIRECTPLAY_ALBUM_ADD
+	EN	Adding Album ...
+
+PLUGIN_DIRECTPLAY_TRACK_PLAY
+	EN	Playing Track ...
+
+PLUGIN_DIRECTPLAY_TRACK_ADD
+	EN	Adding Track ...
+
+PLUGIN_DIRECTPLAY_ARTIST_PLAY
+	EN	Playing Artist ...
+
+PLUGIN_DIRECTPLAY_ARTIST_ADD
+	EN	Adding Artist ...
+
+PLUGIN_DIRECTPLAY_DESC
+	EN	Enables playback of albums, tracks and artists directly by database ID number

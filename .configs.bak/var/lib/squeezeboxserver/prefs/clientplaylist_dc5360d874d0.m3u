@@ -1,0 +1,5 @@
+﻿#CURTRACK 0
+#EXTM3U
+#EXTURL:deezer://flow.dzr
+#EXTINF:-1,Deezer Flow
+deezer://flow.dzr

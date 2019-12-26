@@ -1,0 +1,13 @@
+[Unit]
+Description=slmon
+Requires=squeezeboxserver.service squeezelite.service
+After=multi-user.target squeezeboxserver.service squeezelite.service
+
+[Service]
+Type=forking
+#ExecStartPre=if [ -z $(which screen) ]; then apt -y install screen; fi
+ExecStart=/usr/bin/screen -dmS Session_SL_Mon /opt/squeezebox/scripts/sllisten.sh >/var/log/squeezelite.log 2>&1
+ExecStop=/usr/bin/screen -S Session_SL_Mon -X quit
+
+[Install]
+WantedBy=multi-user.target

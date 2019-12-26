@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<extension>
+	<name>PLUGIN_DIRECTPLAY</name>
+	<module>Plugins::DirectPlay::Plugin</module>
+	<version>7.0a2</version>
+	<description>PLUGIN_DIRECTPLAY_DESC</description>
+	<creator>jasonholtzapple@yahoo.com</creator>
+	<defaultState>enabled</defaultState>
+	<homepageURL>http://ultratrendy.com:31888/slim/</homepageURL>
+	<type>2</type><!-- type=extension -->
+	<targetApplication>
+		<id>SqueezeCenter</id>
+		<minVersion>7.0a</minVersion>
+	        <maxVersion>*</maxVersion>
+	</targetApplication>
+</extension>

@@ -1,0 +1,25 @@
+#https://beets.readthedocs.io/en/v1.4.7/reference/config.html
+# This is additional config file with:
+# - non-interactive (quiet) run in skipping mode
+# - fingerprinting with acoustid chroma
+# - stronest requirements on match (tags, thresholds)
+# - skipping everything not matching
+#
+import:
+    quiet: yes
+    move: yes
+    write: yes
+    quiet_fallback: skip
+    none_rec_action: skip
+    default_action: skip
+    duplicate_action: remove
+    detail: yes
+    singletons: yes
+match:
+    strong_rec_thresh: 0.10
+    medium_rec_thresh: 0.20
+    rec_gap_thresh: 0.01
+    required: artist title year album
+plugins: chroma
+chroma:
+    auto: yes

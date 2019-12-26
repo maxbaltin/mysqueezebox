@@ -1,0 +1,74 @@
+/**
+ * LMS-Material
+ *
+ * Copyright (c) 2018-2019 Craig Drummond <craig.p.drummond@gmail.com>
+ * MIT license.
+ */
+
+::-webkit-scrollbar {
+    background: #c0c0c0;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+::-webkit-scrollbar-corner {
+    background: #ddd;
+}
+
+html {
+    background-color: #f5f5f5;
+}
+
+.vue-splitter .splitter {
+    background-color: #f0f0f0 !important;
+}
+
+.np-bar {
+    background-color: #f5f5f5;
+}
+
+.np-info-cover {
+    background-color:#fff;
+}
+
+.np-info-card-cover, .np-info .theme--light.v-tabs__bar {
+    background:rgba(255, 255, 255, 0.9) !important;
+}
+
+.np-slider {
+    color:#346dd2;
+    background-color: rgba(0, 0, 0, 0.15) !important;
+    border-top: 2px solid #f5f5f5 !important;
+    border-bottom: 2px solid #f5f5f5 !important;
+}
+
+.np-slider-mobile {
+    color:#346dd2;
+    background-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+progress::-webkit-progress-bar {
+    background-color:#ddd;
+}
+progress::-webkit-progress-value {
+    background-color:#346dd2;
+}
+progress::-moz-progress-bar {
+    background-color:#346dd2;
+}
+
+.subtoolbar {
+    background-color: #fff !important;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.lms-bottom-nav {
+    border-top: 1px solid #ddd;
+}
+
+div.v-avatar i.v-icon {
+    color: #272727;
+}
+

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databasequery>
+	<template>
+		<id>sqlquery.xml</id>
+		<parameter type="text" id="queryname"><value>Get random track url</value></parameter>
+		<parameter type="text" id="querydescription"><value>This query list all albums by default, but you can change it to any SQL by using the Edit link</value></parameter>
+		<parameter type="text" id="querysql" rawvalue="1"><value>select url from tracks
+WHERE url LIKE &#39;file://%&#39;and content_type != &#39;dir&#39;
+order by RANDOM() limit 1
+</value></parameter>
+	</template>
+</databasequery>

@@ -1,0 +1,11 @@
+---
+_ts_auto: 1533826970
+_ts_plugin: 1555690081
+_ts_repos: 1533757007
+_version: 3
+auto: 1
+plugin:
+  AutoRescan: 1
+  DatabaseQuery: 1
+  DirectPlay: 1
+repos: []

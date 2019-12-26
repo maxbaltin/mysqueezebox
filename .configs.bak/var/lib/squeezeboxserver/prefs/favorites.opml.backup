@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.0">
+  <head title="Favorites">
+    <expansionState></expansionState>
+  </head>
+  <body>
+    <outline URL="http://www.mysqueezebox.com/api/deezer/v1/opml/user_top_tracks?userid=2069162666" icon="html/images/radio.png" text="Top Charts" type="link" />
+    <outline URL="http://www.mysqueezebox.com/api/deezer/v1/opml/my_mp3s" icon="html/images/radio.png" text="My MP3s" type="link" />
+    <outline URL="deezer://flow.dzr" icon="plugins/Deezer/html/images/icon.png" text="Deezer Flow" type="audio" />
+    <outline URL="http://www.mysqueezebox.com/public/opml/0fb909ce0a04a7b0743fcbd249ba2987d0fadac9/favorites.opml" icon="html/images/favorites.png" text="On mysqueezebox.com" />
+    <outline URL="http://www.mysqueezebox.com/api/deezer/v1/opml/smart_radio?q=Hits" icon="html/images/favorites.png" text="Deezer SmartRadio Hits" />
+    <outline URL="http://www.mysqueezebox.com/api/deezer/v1/opml/smart_radio?q=Classic" icon="html/images/favorites.png" text="Deezer Smart Radio Classic" />
+    <outline URL="http://www.mysqueezebox.com/api/deezer/v1/opml/smart_radio?q=Celtic" icon="html/images/favorites.png" text="Deezer Smart Radio Celtic" />
+    <outline URL="http://www.mysqueezebox.com/api/deezer/v1/opml/smart_radio?q=Dragons" icon="html/images/favorites.png" text="Deezer Smart Radio Dragons" />
+  </body>
+</opml>

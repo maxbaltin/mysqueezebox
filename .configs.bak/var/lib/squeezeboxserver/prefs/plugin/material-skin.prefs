@@ -1,0 +1,6 @@
+---
+_ts_defaults: 1547585072
+_ts_pinned: 1547585072
+_version: 0
+defaults: '{"darkUi":true,"artistAlbumSort":"yearalbum","albumSort":"album","autoScrollQueue":true,"splitArtistsAndAlbums":false,"useGrid":true,"sortFavorites":false,"showMenuAudio":true,"serverMenus":false,"stopButton":true,"browseBackdrop":true,"queueBackdrop":true,"nowPlayingBackdrop":false,"infoBackdrop":true,"techInfo":true}'
+pinned: '[]'

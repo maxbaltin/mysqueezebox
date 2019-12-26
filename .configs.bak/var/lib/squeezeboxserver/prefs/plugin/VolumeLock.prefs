@@ -1,0 +1,18 @@
+---
+_client:b0:48:7a:91:e7:7f:
+  _ts_volume: 1554831426
+  _ts_volumeLockMode: 1554831427
+  _ts_volumeLockVolume: 1554831426
+  _version: 1
+  volume: 100
+  volumeLockMode: PLUGIN_VOLUME_SET_MAX
+  volumeLockVolume: 100
+_client:b8:27:eb:d7:e7:ae:
+  _ts_volume: 1555688096
+  _ts_volumeLockMode: 1555688096
+  _ts_volumeLockVolume: 1555688096
+  _version: 1
+  volume: 100
+  volumeLockMode: PLUGIN_VOLUME_SET_MAX
+  volumeLockVolume: 100
+_version: 0

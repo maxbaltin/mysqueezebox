@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databasequery>
+	<dataquery>
+		<name>Songs</name>
+		<queryid>track</queryid>
+		<query>
+			select tracks.id,tracks.disc,tracks.tracknum,tracks.title,albums.id as album_id,albums.title as album,concat(round(tracks.bitrate/1000),' kbit/s') as bitrate,group_concat(distinct contributors.name) as artists from tracks
+				join albums on
+					albums.id=tracks.album
+				
+				left join contributor_track on
+					contributor_track.track=tracks.id 
+					and contributor_track.role in (1,6)
+				left join contributors on
+					contributor_track.contributor=contributors.id
+				
+			where
+				tracks.id is not null
+				
+				
+				
+				
+				
+				
+			group by tracks.id
+			order by albums.titlesort,albums.id,tracks.disc,tracks.tracknum,tracks.titlesort
+		</query>
+	</dataquery>
+</databasequery>
+

@@ -1,0 +1,54 @@
+#https://beets.readthedocs.io/en/v1.4.7/reference/config.html
+# This is default config with:
+# - interactive (non-quiet) run
+# - acoustid chroma
+# - stronest requirements on match (tags, thresholds)
+#
+directory: /mnt/dietpi_userdata/Music
+library: /mnt/dietpi_userdata/musiclibrary.db
+import:
+    quiet: no
+    move: yes
+    write: yes
+    from_scratch: no
+    resume: yes
+    incremental: no
+    log: /var/log/beets/import.log
+    quiet_fallback: skip
+    none_rec_action: ask
+    default_action: skip
+    duplicate_action: ask
+    detail: yes
+    singletons: yes
+#match:
+    strong_rec_thresh: 0.10
+    medium_rec_thresh: 0.80
+    rec_gap_thresh: 0.01
+    required: artist title year album
+asciify_paths: yes
+paths:
+        default: ${artist} - ${album}%aunique{}/${track}-${title} ${format}_${bitrate}
+        singleton: ${artist}/${title} ${format}_${bitrate}
+plugins: chroma mbsync duplicates fromfilename badfiles replaygain fetchart embedart
+chroma:
+    auto: yes
+acoustid:
+    apikey: DlrKDAjx8v
+replaygain:
+    auto: no
+    overwrite: no
+    backend: command
+#backend options: gstreamer, command, audiotools, bs1770gain. Default: command.
+#targetlevel: 89
+fetchart:
+    auto: yes
+    cautious: true
+    sources: coverart amazon albumart
+embedart:
+    auto: yes
+    remove_art_file: yes
+badfiles:
+    commands:
+        ogg: myoggchecker --opt1 --opt2
+        flac: flac --test --warnings-as-errors --silent
+        mp3: mp3val -f -t -si -nb

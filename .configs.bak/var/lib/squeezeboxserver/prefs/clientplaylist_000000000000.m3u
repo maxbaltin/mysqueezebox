@@ -1,0 +1,5 @@
+﻿#CURTRACK 0
+#EXTM3U
+#EXTURL:file:///mnt/dietpi_userdata/Music/The%20Verve/Bitter%20Sweet%20Symphony%20MP3_320kbps.mp3
+#EXTINF:359,Bitter Sweet Symphony
+/mnt/dietpi_userdata/Music/The Verve/Bitter Sweet Symphony MP3_320kbps.mp3
