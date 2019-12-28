@@ -9,7 +9,8 @@ FILELOG=/tmp/squeezelite.list
 DWNLIST=/tmp/download.list
 #BASEURL="http://cdn-proxy-$( head /dev/urandom | tr -dc a-f0-9 | head -c1 ).deezer.com"
 USERAGENT="iTunes/4.7.1 (Linux; N; Debian; armv7l-linux; EN; utf8) SqueezeCenter, Squeezebox Server, Logitech Media Server/7.9.1/1522157629"
-WGETLOGFILE="/var/log/wget/$( date +%y_%m_%d ).log"
+#WGETLOGFILE="/var/log/wget/$( date +%y_%m_%d ).log"
+WGETLOGFILE="/var/log/wget.log"
 ## To collect valuable info on downloading, enable Deezer DEBUG level logging
 ## in Squeezebox Server - Advanced - Logging settings, don't forget to mark checkbox of applying log settings on restart
 DEEZERDEBUG=1
@@ -83,7 +84,7 @@ if [ $EXP -ge $( date +%s  ) ]; then
       #collecting info from LMS log
       TAGFILE="/tmp/"$FILENAME".tags"
       grep -F -m1 -B9 "$URL" $SQUEEZEBOXLOG | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
-      if [ ! -s $TAGFILE ]; then
+      if [ ! -s $TAGFILE ] && [ -f $SQUEEZEBOXBAK ]; then
         grep -F -m1 -B9 "$URL" $SQUEEZEBOXBAK | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
       fi
       #parsing tagged file to hash array
@@ -96,7 +97,7 @@ if [ $EXP -ge $( date +%s  ) ]; then
 	 echo "INFO: seems ${TAGS['artist_name']} - ${TAGS['title']} already in LMS database. Skipping $URL" >> $WGETLOGFILE
 	 do_tag "$( echo ${TAGS['lmsquery']} | grep -iF 'url' | cut -f4 | cut -d/ -f3- | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' | xargs echo -e )"
 	 continue
-      fi
+       fi
     fi
 # wget will run with or w/out additional info
 # we need internet and some services to run so again checking for discharging UPS state (see upslog.sh)

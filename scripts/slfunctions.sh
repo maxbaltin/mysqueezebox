@@ -270,7 +270,7 @@ do_play_fav()
     if  [ ! -z "$SB_SERVER_IP" ]; then
       FAV_ID=$(printf "$SL_NAME favorites items 0 1000\nexit\n" | nc -w 10 $SB_SERVER_IP $SB_SERVER_CLI_PORT  | sed 's/%3A/:/g' | sed 's/ id:/\'$'\n/g' | grep -i "${SEARCHFOR}" | cut -d ':' -f1 | cut -d ' ' -f1 | head -n 1)
       echo $FAV_ID
-      printf "$SL_NAME favorites playlist play item_id:${FAV_ID}\nexit\n" | nc -w 10 $SB_SERVER_IP $SB_SERVER_CLI_PORT
+      printf "$SL_NAME favorites playlist insert item_id:${FAV_ID}\nexit\n" | nc -w 10 $SB_SERVER_IP $SB_SERVER_CLI_PORT
       if  [ ! -z "$2" ]; then
          # volume has to be set
          do_set_volume "$VOLUME"
