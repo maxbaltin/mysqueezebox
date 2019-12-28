@@ -1,9 +1,9 @@
 #! /bin/bash
 #set -vx
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-#avoiding another instance of cycled scipt
+### avoiding another instance of cycled scipt
 [[ $(/usr/bin/pgrep -a sh | grep -cF $(basename $0)) -gt 2 && -z "$1" ]] && exit 3
-#
+### set some vital vars
 DESC="Squeezebox CLI wrapper"
 SL_NAME=DietPiBox
 SB_SERVER_IP="127.0.0.1"
@@ -12,14 +12,14 @@ SB_SERVER_WEB_PORT="9000"
 SL_LOG=/var/log/squeezelite.log
 SLCLI="$(dirname $0)/slcli.sh"
 SLFUNC="$(dirname $0)/slfunctions.sh"
-# waiting for our Server to get ready for telnet
+### waiting for our Server to get ready for telnet
 until $(nc -z $SB_SERVER_IP $SB_SERVER_CLI_PORT); do
   echo "Server seems not yet ready at $SB_SERVER_IP:$SB_SERVER_CLI_PORT"
 #  (( c++ )) && (( c >= 5 )) && exit 1
   sleep 5
 done
 
-# expected cmd variants: 
+### expected cmd variants: 
 #b8%3A27%3Aeb%3Ad7%3Ae7%3Aae playlist open file%3A%2F%2F%2Fmnt%2Fdietpi_userdata%2FMusic%2FHozier%2FNFWMB%2520MP3_320kbps.mp3
 #b8%3A27%3Aeb%3Ad7%3Ae7%3Aae playlist newsong NFWMB 7
 #b8%3A27%3Aeb%3Ad7%3Ae7%3Aae playlist jump %2B1   
@@ -47,35 +47,42 @@ done
 #b8:27:eb:d7:e7:ae	playlist	stop
 
 function do_action(){
+
+### first, removing playerid mac address to keep all commands array in similar format
 [[ -z ${1%%*%3A*} ]] && shift
+### then, create array of commands captured, without playerid ahead
 local -a line=("$@")
-#expected: cmd as [0], action as [1]
+### so, expected: cmd as [0], action as [1] - see examples above
 #echo "got cmd: ${line[0]} action: ${line[1]}"
 
-# filter options start here
+### filter options start here
 
- # option to add more tracks in case latest is started
+ ### 1. option to add more tracks in case latest is started
  if [[ "${line[0]}" == "playlist" &&  "${line[1]}" == "newsong" ]]; then 
     local -A statushash
-    #b8:27:eb:d7:e7:ae	status
-    #player_name:DietPiBox	player_connected:1	player_ip:127.0.0.1:47828	power:1	signalstrength:0
-    #mode:stop	time:0	rate:1	duration:215.144	can_seek:1	mixer volume:100	playlist repeat:0	playlist shuffle:0	playlist mode:off
-    #seq_no:0	playlist_cur_index:9	playlist_timestamp:1577477630.44775	playlist_tracks:10
+    ### slcli.sh status sample output:
+    #	b8:27:eb:d7:e7:ae	status
+    #	player_name:DietPiBox	player_connected:1	player_ip:127.0.0.1:47828	power:1	signalstrength:0
+    #	mode:stop	time:0	rate:1	duration:215.144	can_seek:1	mixer volume:100	playlist repeat:0	playlist shuffle:0	playlist mode:off
+    #	seq_no:0	playlist_cur_index:9	playlist_timestamp:1577477630.44775	playlist_tracks:10
+    ### TODO: consider status array as a separate function to share its values
     for value in $($SLCLI status); do 
-	statushash["${value%%:*}"]="${value#*:}";
+        statushash["${value%%:*}"]="${value#*:}";
     done
-    # now, if last track in playlist has just started, let's add more stuff:
+    ### now, if last track in playlist has just started, let's add more stuff:
     local remain=$((  statushash["playlist_tracks"] - statushash["playlist_cur_index"] ))
     if [[ $remain -eq 1 ]]; then
-     # try Deezer flow in case Internet connection available or continue local random play otherwise
+     ### trying Deezer flow in case Internet connection available or continue local random play otherwise
      curl http://www.mysqueezebox.com/ -s -f -o /dev/null && $SLFUNC play_fav "Deezer"  || $SLFUNC play_random 10 100 
-     #$SLFUNC play_random 10 100
-     #$SLCLI randomplay tracks
-     #$SLFUNC play_fav "Deezer"
+     ### more options to consider:
+     #	$SLFUNC play_random 10 100
+     #	$SLCLI randomplay tracks
+     #	$SLFUNC play_fav "Deezer"
     fi
     unset statushash
  fi
 
+### add more filtering options based on ${line[@]} array above this line
 }
 
 function clear_output(){
@@ -88,14 +95,11 @@ printf "%s\t" $(date +%Y%m%d_%H%M%S); echo -e "$@" \
     | sed -r 's/(count:[0-9]+)$/\n\1/g'
 #   | sed -e "s/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g" | xargs echo -e \
 }
-
-# main loop
+### main loop
 printf "listen 1\n" | nc $SB_SERVER_IP $SB_SERVER_CLI_PORT \
  | ( while read line; do clear_output "$line"; do_action $line; 
      done ) >>$SL_LOG
-
 exit $?
-
 
 # Useful commands
 
@@ -142,6 +146,3 @@ exit $?
 # The "wipecache" command allows the caller to have the server rescan its music library, reloading the music file information. 
 # This differs from the "rescan" command in that it first clears the tag database. 
 # During a rescan triggered by "wipecache", "rescan ?" returns true. 
-
-
-

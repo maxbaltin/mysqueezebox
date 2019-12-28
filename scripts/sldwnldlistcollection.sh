@@ -7,16 +7,23 @@ LOGFILE=/tmp/squeezelite.log
 FILELOG=/tmp/squeezelite.list
 OFFSETLOG=/tmp/offset.sq
 OFFSETSTART=1
+
 if [ -e $OFFSETLOG ]; then OFFSETSTART=$( cat $OFFSETLOG ); fi
-#    echo $OFFSETSTART
+#echo $OFFSETSTART
+
+### capturing "end of stream" in the squeezelite stream debug log as set in the /systemd squeezelite.service unit
 ENDOFSTREAM=$(( $( tail -n +$OFFSETSTART $LOGFILE | grep -m1 -n  "end of stream" | awk -F':' '{print $1}' ) + $OFFSETSTART ))
 #echo $ENDOFSTREAM
+
+### now, if new end-of-stream line is ahead of previous one, trying to collect download link and store in the filelog
 if [ $ENDOFSTREAM -gt $OFFSETSTART ]; then
       sed -n ${OFFSETSTART},${ENDOFSTREAM}p $LOGFILE  \
       | awk '/stream_sock.*\/api\//{sub(/\&/,"",$5);p=$5;next} /^Host: /{gsub(/[^A-z0-9._-]/,"",$2);h=$2}\
-	 END{if (h && p) {print "http://"h""p}}' >>$FILELOG
+         END{if (h && p) {print "http://"h""p}}' >>$FILELOG
       echo $ENDOFSTREAM > $OFFSETLOG
 fi
+
+exit 0
 
 #TEMPLOG=/tmp/squeezelitelog.tmp
 #OFFSETLOG=/tmp/squeezelite.offset
@@ -32,8 +39,6 @@ fi
 #else
 #    /usr/bin/logger "WARN: $LOGFILE not found" SQUEEZEBOXLOG
 #fi
-
-exit 0
 
 ## /usr/sbin/logtail -f/var/log/squeezelite.log -o/home/dietpi/squeezelite.offset |grep "end of stream" && echo $?
 ## awk '/stream_sock/ {print $5}' /var/log/squeezelite.log

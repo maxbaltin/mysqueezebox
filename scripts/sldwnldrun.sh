@@ -1,9 +1,14 @@
 #! /bin/bash
-# We need internet and some services to run so first checking for discharging UPS state (see upslog.sh)
+###
+### PRE_REQS: wget, mid3v2 (pip install mutagen)
+###
+
+### We need internet and some services to run so first checking for discharging UPS state (see upslog.sh)
 [[ -s /tmp/upsstate && $(cat /tmp/upsstate) -lt 7 ]] && exit 3
-# Checking if previous wget still active
+### Checking if previous wget still active
 [[ -e /tmp/wget ]] && exit 3
 
+### Setting some essential vars
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 FILELOG=/tmp/squeezelite.list
 DWNLIST=/tmp/download.list
@@ -11,10 +16,11 @@ DWNLIST=/tmp/download.list
 USERAGENT="iTunes/4.7.1 (Linux; N; Debian; armv7l-linux; EN; utf8) SqueezeCenter, Squeezebox Server, Logitech Media Server/7.9.1/1522157629"
 #WGETLOGFILE="/var/log/wget/$( date +%y_%m_%d ).log"
 WGETLOGFILE="/var/log/wget.log"
-## To collect valuable info on downloading, enable Deezer DEBUG level logging
-## in Squeezebox Server - Advanced - Logging settings, don't forget to mark checkbox of applying log settings on restart
-DEEZERDEBUG=1
 DWNLDIR=/mnt/dietpi_userdata/downloads
+
+### To collect valuable info on downloading, enable Deezer DEBUG level logging
+### in Squeezebox Server - Advanced - Logging settings, don't forget to mark checkbox of applying log settings on restart
+DEEZERDEBUG=1
 SQUEEZEBOXLOG=/var/log/squeezeboxserver/error.log
 SQUEEZEBOXBAK=/mnt/dietpi-backup/logfile_storage/squeezeboxserver/error.log
 if [ $DEEZERDEBUG == 1 ]; then 
@@ -23,13 +29,22 @@ if [ $DEEZERDEBUG == 1 ]; then
 fi
 
 #TODO: use SLlisten/mon script + /var/log/squeezelite.log
-#TODO: get info from http://127.0.0.1:9000/plugins/deezer/trackinfo.html
+# get info from  http://127.0.0.1:9000/plugins/deezer/trackinfo.html
+# get cover from http://127.0.0.1:9000/music/<track_id>/cover.jpg
 #./slcli.sh genre ? |cut -f 3-
 #./slcli.sh artist ? |cut -f 3-
 #./slcli.sh album ? |cut -f 3-
 #./slcli.sh title ? |cut -f 3-
-
-### PRE_REQS: wget, mid3v2 (pip install mutagen)
+# TAGS: 
+    #album_name	"Loud Like Love"
+    #artist_name	"Placebo"
+    #cover	"http://api.deezer.com/2.0/album/48270832/image?size=xl"
+    #duration	214
+    #title	"Too Many Friends"
+    #url	"http://...&"
+# TAGFILE="/tmp/"$FILENAME".tags"
+# FILENAME=$( echo "$URL"|sed -rn 's/.+\/([a-f0-9]+)\.mp3.+/\1\.tmp/p' )
+# $URL is read as  <$DWNLIST
 
 #### todo:
 #done#  build filename and prepare tags, size info from deezer debug log
@@ -42,21 +57,14 @@ fi
 
 ### FUNCTIONS ###
 
-do_tag()
-{
-#function receives full path to file as $1
-
-#kid3 doesn't run headless, requires X-Window QXcbConnection: Could not connect to display
-#[[ -z $( /usr/bin/kid3-cli -c "get artist" "$1" 2>/dev/null ) ]] && /usr/bin/kid3-cli -c "set artist \"${TAGS['artist_name']}\"" "$1"
-#[[ -z $( /usr/bin/kid3-cli -c "get album"  "$1" 2>/dev/null ) ]] && /usr/bin/kid3-cli -c "set album  \"${TAGS['album_name']}\"" "$1"
-#[[ -z $( /usr/bin/kid3-cli -c "get title"  "$1" 2>/dev/null ) ]] && /usr/bin/kid3-cli -c "set title  \"${TAGS['title']}\"" "$1"
-#/usr/bin/kid3-cli -c "set albumart ${TAGS['cover']}" "$1"
-
-#will use /usr/bin/mid3v2
-#-a, --artist=ARTIST artist information (TPE1).
-#-A, --album=ALBUM  album information (TALB).
-#-t, --song=TITLE title information (TIT2).
-#-p, --picture=<FILENAME:DESCRIPTION:IMAGE-TYPE:MIME-TYPE>  attached picture (APIC). Everything except the filename can be omitted in which case default values will be used.
+do_tag() {
+# function receives full path to file as $1
+# PRE-REQ: TAGS named array pre-populated
+# will use /usr/bin/mid3v2
+    #-a, --artist=ARTIST artist information (TPE1).
+    #-A, --album=ALBUM  album information (TALB).
+    #-t, --song=TITLE title information (TIT2).
+    #-p, --picture=<FILENAME:DESCRIPTION:IMAGE-TYPE:MIME-TYPE>  attached picture (APIC). Everything except the filename can be omitted in which case default values will be used.
 [[ -z $( /usr/bin/mid3v2 -l "$1" | grep -F 'TPE1' ) ]] && /usr/bin/mid3v2 --artist="${TAGS['artist_name']}" "$1"
 [[ -z $( /usr/bin/mid3v2 -l "$1" | grep -F 'TIT2' ) ]] && /usr/bin/mid3v2 --song="${TAGS['title']}" "$1"
 [[ -z $( /usr/bin/mid3v2 -l "$1" | grep -F 'TALB' ) ]] && /usr/bin/mid3v2 --album="${TAGS['album_name']}" "$1"
@@ -66,58 +74,62 @@ if [[ -z $( /usr/bin/mid3v2 -l "$1" | grep -F 'APIC' ) ]]; then
 fi
 }
 
-do_download()
-{
+do_download() {
+### this is main function, does all the magic until reworked from crontab run with dwnl list collector script to sllisten mode
+
 echo "INFO: Starting wget of $DWNLIST. Log file: $WGETLOGFILE" >>$WGETLOGFILE
-#wget --no-verbose --continue --adjust-extension --wait=5 --random-wait --limit-rate=100k -U "$USERAGENT" -a "$WGETLOGFILE" -B "$BASEURL" -P $DWNLDIR -i $DWNLIST
-#wget --no-verbose --continue --adjust-extension --wait=5 --random-wait -U "$USERAGENT" -B "$BASEURL" -P $DWNLDIR -i $DWNLIST
+
 while read URL; do
     #echo $URL
     EXP=$( echo $URL|sed -rn 's/.+exp=([0-9]+).+/\1/p' )
     #'
     FILENAME=$( echo "$URL"|sed -rn 's/.+\/([a-f0-9]+)\.mp3.+/\1\.tmp/p' )
     #'
-#continue if link not yet expired
-if [ $EXP -ge $( date +%s  ) ]; then
-    # more stuff in case deezer debug logging enabled
-    if [ $DEEZERDEBUG == 1 ] && [ ! -s "/tmp/"$FILENAME".tags" ]; then
-      #collecting info from LMS log
+    ### continue if link not yet expired
+    if [ $EXP -ge $( date +%s  ) ]; then
+    ### more stuff in case deezer debug logging enabled
+     if [ $DEEZERDEBUG == 1 ] && [ ! -s "/tmp/"$FILENAME".tags" ]; then
+      ### collecting info from LMS log
       TAGFILE="/tmp/"$FILENAME".tags"
+      ### grepping squeezeboxserver's deezer debug log with match limit 1 and 9 lines before the match, see .tags file samples
       grep -F -m1 -B9 "$URL" $SQUEEZEBOXLOG | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
       if [ ! -s $TAGFILE ] && [ -f $SQUEEZEBOXBAK ]; then
         grep -F -m1 -B9 "$URL" $SQUEEZEBOXBAK | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
       fi
-      #parsing tagged file to hash array
+      ### parsing tagged file to hash array
       while read name val; do TAGS[$name]=$( echo $val | sed 's/"//g' ); done <$TAGFILE
-    	    #for k in ${!TAGS[*]}; do echo "$k - ${TAGS[$k]}"; done
-      #skipping wget if the artist+title already in the LMS database
+		#for k in ${!TAGS[*]}; do echo "$k - ${TAGS[$k]}"; done
+      ### skipping wget if the artist+title already in the LMS database
       TAGS['lmsquery']=$( /bin/bash $SLCLI titles 0 10 tags:au  search:${TAGS['title']} |grep -iF "artist:${TAGS['artist_name']}" )
-      #if [ $( /bin/bash $SLCLI titles 0 10 tags:a  search:${TAGS['title']} |grep -qF "artist:${TAGS['artist_name']}"; echo $? ) == 0 ]; then
-       if [[ -n ${TAGS['lmsquery']} ]]; then
-	 echo "INFO: seems ${TAGS['artist_name']} - ${TAGS['title']} already in LMS database. Skipping $URL" >> $WGETLOGFILE
-	 do_tag "$( echo ${TAGS['lmsquery']} | grep -iF 'url' | cut -f4 | cut -d/ -f3- | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' | xargs echo -e )"
-	 continue
-       fi
+      if [[ -n ${TAGS['lmsquery']} ]]; then
+        echo "INFO: seems ${TAGS['artist_name']} - ${TAGS['title']} already in LMS database. Skipping $URL" >> $WGETLOGFILE
+        do_tag "$( echo ${TAGS['lmsquery']} | grep -iF 'url' | cut -f4 | cut -d/ -f3- | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' | xargs echo -e )"
+        continue
+      fi
+     fi
+    ### wget will run with or w/out additional info
+    ### we need internet and some services to run so again checking for discharging UPS state (see upslog.sh)
+    [[ -s /tmp/upsstate && $(cat /tmp/upsstate) -lt 7 ]] && break
+    
+    ### downloading itself:
+    wget --no-verbose --continue --wait=5 --random-wait --limit-rate=100k -U "$USERAGENT" -a "$WGETLOGFILE" -O /tmp/${FILENAME} $URL
+    ### downloading completed, checking its status
+    
+     if [ "$?" == 0 ]; then
+      echo "INFO: Download $FILENAME OK." >>$WGETLOGFILE
+      ### again, if tags collected, renamimg file to meaningful name and calling tagging function
+      if [ $DEEZERDEBUG == 1 ] && [[ -v TAGS[@] ]] && [[ -n TAGS['artist_name'] ]] && [[ -n TAGS['title'] ]]; then
+       do_tag "$( readlink -f /tmp/${FILENAME} )"
+       mv "/tmp/${FILENAME}" "${DWNLDIR}/${TAGS['artist_name']} - ${TAGS['title']}.mp3"
+      else
+       mv "/tmp/${FILENAME}" ${DWNLDIR}/$(echo $FILENAME|sed -n 's/\.tmp$/\.mp3/p')
+      fi
+     else # if download has failed
+      echo "WARN: There was an error on downloading ${FILENAME}." >>$WGETLOGFILE
+     fi
+    else # link already expired, no reason to even try 
+     echo "WARN: seems link already expired. Skipping $URL" >> $WGETLOGFILE
     fi
-# wget will run with or w/out additional info
-# we need internet and some services to run so again checking for discharging UPS state (see upslog.sh)
-[[ -s /tmp/upsstate && $(cat /tmp/upsstate) -lt 7 ]] && break
-wget --no-verbose --continue --wait=5 --random-wait --limit-rate=100k -U "$USERAGENT" -a "$WGETLOGFILE" -O /tmp/${FILENAME} $URL
-    if [ "$?" == 0 ]; then
-        echo "INFO: Download $FILENAME OK." >>$WGETLOGFILE
-	#again, if tags collected, renamimg file to meaningful name and calling tagging function
-	if [ $DEEZERDEBUG == 1 ] && [[ -v TAGS[@] ]] && [[ -n TAGS['artist_name'] ]] && [[ -n TAGS['title'] ]]; then
-	    do_tag "$( readlink -f /tmp/${FILENAME} )"
-	    mv "/tmp/${FILENAME}" "${DWNLDIR}/${TAGS['artist_name']} - ${TAGS['title']}.mp3"
-	else
-	    mv "/tmp/${FILENAME}" ${DWNLDIR}/$(echo $FILENAME|sed -n 's/\.tmp$/\.mp3/p')
-	fi
-    else
-        echo "WARN: There was an error on downloading ${FILENAME}." >>$WGETLOGFILE
-    fi
-else
-    echo "WARN: seems link already expired. Skipping $URL" >> $WGETLOGFILE
-fi
 done <$DWNLIST
 echo "$DWNLIST removing"
 rm -f $DWNLIST
@@ -132,20 +144,29 @@ fi
 if [ -e $FILELOG ]; then
     echo "Temp lazy workaround to avoid running with dwlnd collector script at the same sec."
     sleep 5
-##  cat $FILELOG | awk -F"&" '/api/ {print $BASEURL$1}' >$DWNLIST
+    ##  cat $FILELOG | awk -F"&" '/api/ {print $BASEURL$1}' >$DWNLIST
     mv $FILELOG $DWNLIST
     #echo "$?"
     if [ "$?" == 0 ] &&  [ -e $DWNLIST ]; then
-	echo "INFO: DWNLIST created" >>$WGETLOGFILE
-	do_download
+      echo "INFO: DWNLIST created" >>$WGETLOGFILE
+      do_download
     fi
 fi
 
 exit 0
 
+#wget --no-verbose --continue --adjust-extension --wait=5 --random-wait --limit-rate=100k -U "$USERAGENT" -a "$WGETLOGFILE" -B "$BASEURL" -P $DWNLDIR -i $DWNLIST
+#wget --no-verbose --continue --adjust-extension --wait=5 --random-wait -U "$USERAGENT" -B "$BASEURL" -P $DWNLDIR -i $DWNLIST
+
 #for tagging
 #if [ $( /bin/bash $SLCLI titles 0 10 tags:a  search:${TAGS['title']} |grep -qF "artist:${TAGS['artist_name']}"; echo $? ) == 0 ]; then
 #slcli.sh titles 0 10 tags:au search:Trust | grep -iF 'url' | cut -f4 | cut -d/ -f3- | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' | xargs echo -e
+
+    #kid3 doesn't run headless, requires X-Window QXcbConnection: Could not connect to display
+    #[[ -z $( /usr/bin/kid3-cli -c "get artist" "$1" 2>/dev/null ) ]] && /usr/bin/kid3-cli -c "set artist \"${TAGS['artist_name']}\"" "$1"
+    #[[ -z $( /usr/bin/kid3-cli -c "get album"  "$1" 2>/dev/null ) ]] && /usr/bin/kid3-cli -c "set album  \"${TAGS['album_name']}\"" "$1"
+    #[[ -z $( /usr/bin/kid3-cli -c "get title"  "$1" 2>/dev/null ) ]] && /usr/bin/kid3-cli -c "set title  \"${TAGS['title']}\"" "$1"
+    #/usr/bin/kid3-cli -c "set albumart ${TAGS['cover']}" "$1"
 
 #renaming
 ## ls | awk -F"\%2F" '/\.mp3\?/ {print $4}'
