@@ -9,7 +9,7 @@ SL_NAME=DietPiBox
 SB_SERVER_IP="127.0.0.1"
 SB_SERVER_CLI_PORT="9090"
 SB_SERVER_WEB_PORT="9000"
-SL_LOG=/var/log/squeezelite.log
+SL_LOG=/var/log/slscripts/squeezelite.log
 SLCLI="$(dirname $0)/slcli.sh"
 SLFUNC="$(dirname $0)/slfunctions.sh"
 ### waiting for our Server to get ready for telnet
@@ -45,6 +45,11 @@ done
 #count:1
 #favorites	changed
 #b8:27:eb:d7:e7:ae	playlist	stop
+#b8:27:eb:d7:e7:ae	playlist	open	deezer://630594342.mp3
+#b8:27:eb:d7:e7:ae	playlist	open	http://cdnt-proxy-0...
+#b8:27:eb:d7:e7:ae	playlist	open	deezer://flow.dzr
+#b8:27:eb:d7:e7:ae	playlist	open	http://cdnt-proxy-5...
+#b8:27:eb:d7:e7:ae	playlist	newsong	Deezer Flow	1
 
 function do_action(){
 

@@ -3,7 +3,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 #avoiding another instance of cycled scipt
 [[ $(/usr/bin/pgrep -a sh | grep -cF $(basename $0)) -gt 2 && -z "$1" ]] && exit 3
 #set addons
-LOG=/var/log/upslog.log
+LOG=/var/log/slscripts/upslog.log
 #LOG="$(dirname $0)/testups.csv"
 #LOGBAK=/mnt/dietpi-backup/logfile_storage/testups.csv
 #LOG=/dev/stdout

@@ -9,7 +9,7 @@
 directory: /mnt/dietpi_userdata/downloads
 library: /mnt/dietpi_userdata/downloads.db
 import:
-    log: /var/log/beets/import.log
+    log: /var/log/slscripts/beets-import.log
     quiet: yes
     move: no
     copy: no
@@ -54,4 +54,4 @@ badfiles:
     commands:
         ogg: myoggchecker --opt1 --opt2
         flac: flac --test --warnings-as-errors --silent
-        mp3: mp3val -f -t -si -nb -l/var/log/beets/mp3val.log
+        mp3: mp3val -f -t -si -nb -l/var/log/slscripts/beets-mp3val.log

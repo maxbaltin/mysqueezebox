@@ -8,7 +8,7 @@
 directory: /mnt/dietpi_userdata/Music
 library: /mnt/dietpi_userdata/musiclibrary.db
 import:
-    log: /var/log/beets/import.log
+    log: /var/log/slscripts/beets-import.log
     quiet: yes
     move: yes
     write: yes

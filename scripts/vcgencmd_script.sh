@@ -1,5 +1,5 @@
 #!/bin/bash
-LOG=/var/log/$(basename $0).log
+LOG=/var/log/slscripts/$(basename $0).log
 # # 
 # Script by  ThomasKaiser https://github.com/ThomasKaiser
 # https://github.com/bamarni/pi64/issues/4#issuecomment-292707581

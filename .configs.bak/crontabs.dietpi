@@ -20,6 +20,6 @@
 # For more information see the manual pages of crontab(5) and cron(8)
 # 
 # m h  dom mon dow   command
-*/3 * * * * /opt/squeezebox/scripts/sldwnldlistcollection.sh
-*/11 * * * * /opt/squeezebox/scripts/sldwnldrun.sh
-49 * * * * /opt/squeezebox/scripts/beets.sh
+*/3 * * * * /opt/squeezebox/scripts/sldwnldlistcollection.sh >>/var/log/slscripts/cron.log 2>&1
+*/11 * * * * /opt/squeezebox/scripts/sldwnldrun.sh >>/var/log/slscripts/cron.log 2>&1
+49 * * * * /opt/squeezebox/scripts/beets.sh >>/var/log/slscripts/beets-cron.log 2>&1

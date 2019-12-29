@@ -8,6 +8,7 @@ FILELOG=/tmp/squeezelite.list
 OFFSETLOG=/tmp/offset.sq
 OFFSETSTART=1
 
+echo "DEBUG: Checking $LOGFILE"
 if [ -e $OFFSETLOG ]; then OFFSETSTART=$( cat $OFFSETLOG ); fi
 #echo $OFFSETSTART
 
@@ -15,12 +16,15 @@ if [ -e $OFFSETLOG ]; then OFFSETSTART=$( cat $OFFSETLOG ); fi
 ENDOFSTREAM=$(( $( tail -n +$OFFSETSTART $LOGFILE | grep -m1 -n  "end of stream" | awk -F':' '{print $1}' ) + $OFFSETSTART ))
 #echo $ENDOFSTREAM
 
+echo "DEBUG: Current/new offset: ${OFFSETSTART}/${ENDOFSTREAM}"
+
 ### now, if new end-of-stream line is ahead of previous one, trying to collect download link and store in the filelog
 if [ $ENDOFSTREAM -gt $OFFSETSTART ]; then
       sed -n ${OFFSETSTART},${ENDOFSTREAM}p $LOGFILE  \
       | awk '/stream_sock.*\/api\//{sub(/\&/,"",$5);p=$5;next} /^Host: /{gsub(/[^A-z0-9._-]/,"",$2);h=$2}\
          END{if (h && p) {print "http://"h""p}}' >>$FILELOG
       echo $ENDOFSTREAM > $OFFSETLOG
+      [[ -f $FILELOG ]] && echo "$FILELOG updated"
 fi
 
 exit 0

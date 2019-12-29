@@ -13,7 +13,7 @@ import:
     from_scratch: no
     resume: yes
     incremental: no
-    log: /var/log/beets/import.log
+    log: /var/log/slscripts/beets-import.log
     quiet_fallback: skip
     none_rec_action: ask
     default_action: skip
@@ -31,7 +31,7 @@ paths:
         singleton: ${artist}/${title} ${format}_${bitrate}
 plugins: chroma mbsync duplicates fromfilename badfiles replaygain fetchart embedart
 chroma:
-    auto: yes
+    auto: no
 acoustid:
     apikey: DlrKDAjx8v
 replaygain:

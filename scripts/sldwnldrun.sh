@@ -15,8 +15,9 @@ DWNLIST=/tmp/download.list
 #BASEURL="http://cdn-proxy-$( head /dev/urandom | tr -dc a-f0-9 | head -c1 ).deezer.com"
 USERAGENT="iTunes/4.7.1 (Linux; N; Debian; armv7l-linux; EN; utf8) SqueezeCenter, Squeezebox Server, Logitech Media Server/7.9.1/1522157629"
 #WGETLOGFILE="/var/log/wget/$( date +%y_%m_%d ).log"
-WGETLOGFILE="/var/log/wget.log"
+WGETLOGFILE="/var/log/slscripts/wget.log"
 DWNLDIR=/mnt/dietpi_userdata/downloads
+TAGGER=$(which mid3v2)
 
 ### To collect valuable info on downloading, enable Deezer DEBUG level logging
 ### in Squeezebox Server - Advanced - Logging settings, don't forget to mark checkbox of applying log settings on restart
@@ -65,12 +66,17 @@ do_tag() {
     #-A, --album=ALBUM  album information (TALB).
     #-t, --song=TITLE title information (TIT2).
     #-p, --picture=<FILENAME:DESCRIPTION:IMAGE-TYPE:MIME-TYPE>  attached picture (APIC). Everything except the filename can be omitted in which case default values will be used.
-[[ -z $( /usr/bin/mid3v2 -l "$1" | grep -F 'TPE1' ) ]] && /usr/bin/mid3v2 --artist="${TAGS['artist_name']}" "$1"
-[[ -z $( /usr/bin/mid3v2 -l "$1" | grep -F 'TIT2' ) ]] && /usr/bin/mid3v2 --song="${TAGS['title']}" "$1"
-[[ -z $( /usr/bin/mid3v2 -l "$1" | grep -F 'TALB' ) ]] && /usr/bin/mid3v2 --album="${TAGS['album_name']}" "$1"
-if [[ -z $( /usr/bin/mid3v2 -l "$1" | grep -F 'APIC' ) ]]; then
-    wget --no-verbose -U "$USERAGENT" -a "$WGETLOGFILE" -O "/tmp/${FILENAME}.jpg" ${TAGS['cover']}
-    /usr/bin/mid3v2 --picture="/tmp/${FILENAME}.jpg" "$1"
+if [ -f $1 ] && [ -x $TAGGER ]; then
+    echo "INFO: Tagging file: $1" >>$WGETLOGFILE
+    [[ -z $( $TAGGER -l "$1" | grep -F 'TPE1' ) ]] && $TAGGER --artist="${TAGS['artist_name']}" "$1"
+    [[ -z $( $TAGGER -l "$1" | grep -F 'TIT2' ) ]] && $TAGGER --song="${TAGS['title']}" "$1"
+    [[ -z $( $TAGGER -l "$1" | grep -F 'TALB' ) ]] && $TAGGER --album="${TAGS['album_name']}" "$1"
+    if [[ -z $( $TAGGER -l "$1" | grep -F 'APIC' ) ]]; then
+     wget --no-verbose -U "$USERAGENT" -a "$WGETLOGFILE" -O "/tmp/${FILENAME}.jpg" ${TAGS['cover']}
+     $TAGGER --picture="/tmp/${FILENAME}.jpg" "$1"
+    fi
+else
+    echo "ERROR: Tagging error. Tag binary: ${TAGGER}, target file: $1" >>$WGETLOGFILE
 fi
 }
 
@@ -112,6 +118,7 @@ while read URL; do
     [[ -s /tmp/upsstate && $(cat /tmp/upsstate) -lt 7 ]] && break
     
     ### downloading itself:
+    echo "DEBUG: Downloading ${FILENAME}" >>$WGETLOGFILE
     wget --no-verbose --continue --wait=5 --random-wait --limit-rate=100k -U "$USERAGENT" -a "$WGETLOGFILE" -O /tmp/${FILENAME} $URL
     ### downloading completed, checking its status
     
@@ -120,18 +127,20 @@ while read URL; do
       ### again, if tags collected, renamimg file to meaningful name and calling tagging function
       if [ $DEEZERDEBUG == 1 ] && [[ -v TAGS[@] ]] && [[ -n TAGS['artist_name'] ]] && [[ -n TAGS['title'] ]]; then
        do_tag "$( readlink -f /tmp/${FILENAME} )"
+       echo "DEBUG: Moving file to ${DWNLDIR}" >>$WGETLOGFILE
        mv "/tmp/${FILENAME}" "${DWNLDIR}/${TAGS['artist_name']} - ${TAGS['title']}.mp3"
       else
+       echo "DEBUG: Moving file to ${DWNLDIR}" >>$WGETLOGFILE
        mv "/tmp/${FILENAME}" ${DWNLDIR}/$(echo $FILENAME|sed -n 's/\.tmp$/\.mp3/p')
       fi
      else # if download has failed
       echo "WARN: There was an error on downloading ${FILENAME}." >>$WGETLOGFILE
      fi
     else # link already expired, no reason to even try 
-     echo "WARN: seems link already expired. Skipping $URL" >> $WGETLOGFILE
+     echo "WARN: seems link already expired. Skipping $URL" >>$WGETLOGFILE
     fi
 done <$DWNLIST
-echo "$DWNLIST removing"
+echo "Removing $DWNLIST" >>$WGETLOGFILE
 rm -f $DWNLIST
 }
 
@@ -139,20 +148,22 @@ rm -f $DWNLIST
 ### MAIN SECTION ###
 ## Managing download list and collected filelist with links
 if [ -e $DWNLIST ]; then
+    echo "INFO: DWNLIST $DWNLIST found" >>$WGETLOGFILE
     do_download
+else
+    echo "INFO: DWNLIST not found (it's OK)" >>$WGETLOGFILE
 fi
 if [ -e $FILELOG ]; then
-    echo "Temp lazy workaround to avoid running with dwlnd collector script at the same sec."
+    #echo "Temp lazy workaround to avoid running with dwlnd collector script at the same sec."
+    echo "INFO: new FILEFOG $FILELOG found, creating DWNLIST $DWNLIST" >>$WGETLOGFILE
     sleep 5
-    ##  cat $FILELOG | awk -F"&" '/api/ {print $BASEURL$1}' >$DWNLIST
     mv $FILELOG $DWNLIST
-    #echo "$?"
     if [ "$?" == 0 ] &&  [ -e $DWNLIST ]; then
-      echo "INFO: DWNLIST created" >>$WGETLOGFILE
+      echo "INFO: DWNLIST $DWNLIST created" >>$WGETLOGFILE
       do_download
     fi
 fi
-
+echo "DEBUG: Script $0 completed" >>$WGETLOGFILE
 exit 0
 
 #wget --no-verbose --continue --adjust-extension --wait=5 --random-wait --limit-rate=100k -U "$USERAGENT" -a "$WGETLOGFILE" -B "$BASEURL" -P $DWNLDIR -i $DWNLIST
