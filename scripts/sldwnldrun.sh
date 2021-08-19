@@ -9,7 +9,7 @@
 [[ -e /tmp/wget ]] && exit 3
 
 ### Setting some essential vars
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 FILELOG=/tmp/squeezelite.list
 DWNLIST=/tmp/download.list
 #BASEURL="http://cdn-proxy-$( head /dev/urandom | tr -dc a-f0-9 | head -c1 ).deezer.com"
@@ -66,14 +66,14 @@ do_tag() {
     #-A, --album=ALBUM  album information (TALB).
     #-t, --song=TITLE title information (TIT2).
     #-p, --picture=<FILENAME:DESCRIPTION:IMAGE-TYPE:MIME-TYPE>  attached picture (APIC). Everything except the filename can be omitted in which case default values will be used.
-if [ -f $1 ] && [ -x $TAGGER ]; then
-    echo "INFO: Tagging file: $1" >>$WGETLOGFILE
-    [[ -z $( $TAGGER -l "$1" | grep -F 'TPE1' ) ]] && $TAGGER --artist="${TAGS['artist_name']}" "$1"
-    [[ -z $( $TAGGER -l "$1" | grep -F 'TIT2' ) ]] && $TAGGER --song="${TAGS['title']}" "$1"
-    [[ -z $( $TAGGER -l "$1" | grep -F 'TALB' ) ]] && $TAGGER --album="${TAGS['album_name']}" "$1"
-    if [[ -z $( $TAGGER -l "$1" | grep -F 'APIC' ) ]]; then
+if  [[  -f "$1" && -x "${TAGGER}" ]];  then
+    echo "$(date) INFO: Tagging file: $1" >>$WGETLOGFILE
+    [[ -z $( mid3v2 -l "$1" | grep -F 'TPE1' ) ]] &&  /usr/local/bin/mid3v2 --artist="${TAGS['artist_name']}" "$1"
+    [[ -z $( mid3v2 -l "$1" | grep -F 'TIT2' ) ]] &&   /usr/local/bin/mid3v2 --song="${TAGS['title']}" "$1"
+    [[ -z $( mid3v2 -l "$1" | grep -F 'TALB' ) ]] &&  /usr/local/bin/mid3v2  --album="${TAGS['album_name']}" "$1"
+    if [[ -z $( mid3v2 -l "$1" | grep -F 'APIC' ) ]]; then
      wget --no-verbose -U "$USERAGENT" -a "$WGETLOGFILE" -O "/tmp/${FILENAME}.jpg" ${TAGS['cover']}
-     $TAGGER --picture="/tmp/${FILENAME}.jpg" "$1"
+     /usr/local/bin/mid3v2 --picture="/tmp/${FILENAME}.jpg" "$1"
     fi
 else
     echo "ERROR: Tagging error. Tag binary: ${TAGGER}, target file: $1" >>$WGETLOGFILE
@@ -83,7 +83,7 @@ fi
 do_download() {
 ### this is main function, does all the magic until reworked from crontab run with dwnl list collector script to sllisten mode
 
-echo "INFO: Starting wget of $DWNLIST. Log file: $WGETLOGFILE" >>$WGETLOGFILE
+echo "$(date) INFO: Starting wget of $DWNLIST. Log file: $WGETLOGFILE" >>$WGETLOGFILE
 
 while read URL; do
     #echo $URL
@@ -91,24 +91,32 @@ while read URL; do
     #'
     FILENAME=$( echo "$URL"|sed -rn 's/.+\/([a-f0-9]+)\.mp3.+/\1\.tmp/p' )
     #'
+    echo "$(date) INFO: Next link $FILENAME  ${URL}" >>$WGETLOGFILE
     ### continue if link not yet expired
     if [ $EXP -ge $( date +%s  ) ]; then
     ### more stuff in case deezer debug logging enabled
-     if [ $DEEZERDEBUG == 1 ] && [ ! -s "/tmp/"$FILENAME".tags" ]; then
+     if [ $DEEZERDEBUG == 1 ]; then
       ### collecting info from LMS log
       TAGFILE="/tmp/"$FILENAME".tags"
+        echo "$(date) DEBUG: creating ${TAGFILE}" >>$WGETLOGFILE
       ### grepping squeezeboxserver's deezer debug log with match limit 1 and 9 lines before the match, see .tags file samples
-      grep -F -m1 -B9 "$URL" $SQUEEZEBOXLOG | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
+	# utf decoding looks ugly, this is due to local awk implementation - no gensub, no back-reference supported, no {n,m} in regexp
+      printf "%b\n" "$(grep -F -m1 -B9 "$URL" $SQUEEZEBOXLOG | awk -F' => |,$' '{gsub(/ /,"",$1); gsub(/\\x{/,"\\u0",$2); gsub(/\\x/,"\\u00",$2); gsub(/}/,"",$2); printf "%s\n", $1"\t"$2}')" >$TAGFILE
+      #grep -F -m1 -B9 "$URL" $SQUEEZEBOXLOG | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
       if [ ! -s $TAGFILE ] && [ -f $SQUEEZEBOXBAK ]; then
-        grep -F -m1 -B9 "$URL" $SQUEEZEBOXBAK | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
+        printf "%b\n" "$(grep -F -m1 -B9 "$URL" $SQUEEZEBOXBAK | awk -F' => |,$' '{gsub(/ /,"",$1); gsub(/\\x{/,"\\u0",$2); gsub(/\\x/,"\\u00",$2); gsub(/}/,"",$2); printf "%s\n", $1"\t"$2}')" >$TAGFILE
+        #grep -F -m1 -B9 "$URL" $SQUEEZEBOXBAK | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
       fi
       ### parsing tagged file to hash array
+        echo "$(date) DEBUG: parsing ${TAGFILE}" >>$WGETLOGFILE
+        echo "$(date) DEBUG: tag file content:"  >>$WGETLOGFILE
+        [[ -r ${TAGFILE} ]] && cat ${TAGFILE} >>$WGETLOGFILE || echo "File not exists or not readable" >>$WGETLOGFILE
       while read name val; do TAGS[$name]=$( echo $val | sed 's/"//g' ); done <$TAGFILE
-		#for k in ${!TAGS[*]}; do echo "$k - ${TAGS[$k]}"; done
+		for k in ${!TAGS[*]}; do echo "$k - ${TAGS[$k]}" >>$WGETLOGFILE ; done
       ### skipping wget if the artist+title already in the LMS database
       TAGS['lmsquery']=$( /bin/bash $SLCLI titles 0 10 tags:au  search:${TAGS['title']} |grep -iF "artist:${TAGS['artist_name']}" )
       if [[ -n ${TAGS['lmsquery']} ]]; then
-        echo "INFO: seems ${TAGS['artist_name']} - ${TAGS['title']} already in LMS database. Skipping $URL" >> $WGETLOGFILE
+        echo "$(date) INFO: seems ${TAGS['artist_name']} - ${TAGS['title']} already in LMS database. Skipping $URL" >> $WGETLOGFILE
         do_tag "$( echo ${TAGS['lmsquery']} | grep -iF 'url' | cut -f4 | cut -d/ -f3- | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' | xargs echo -e )"
         continue
       fi
@@ -118,29 +126,31 @@ while read URL; do
     [[ -s /tmp/upsstate && $(cat /tmp/upsstate) -lt 7 ]] && break
     
     ### downloading itself:
-    echo "DEBUG: Downloading ${FILENAME}" >>$WGETLOGFILE
-    wget --no-verbose --continue --wait=5 --random-wait --limit-rate=100k -U "$USERAGENT" -a "$WGETLOGFILE" -O /tmp/${FILENAME} $URL
+    echo "$(date) DEBUG: Downloading ${FILENAME}" >>$WGETLOGFILE
+    wget --no-verbose --continue --wait=5 --random-wait --limit-rate=500k -U "$USERAGENT" -a "$WGETLOGFILE" -O /tmp/${FILENAME} $URL
     ### downloading completed, checking its status
     
      if [ "$?" == 0 ]; then
-      echo "INFO: Download $FILENAME OK." >>$WGETLOGFILE
+      echo "$(date) INFO: Download OK: $FILENAME" >>$WGETLOGFILE
       ### again, if tags collected, renamimg file to meaningful name and calling tagging function
       if [ $DEEZERDEBUG == 1 ] && [[ -v TAGS[@] ]] && [[ -n TAGS['artist_name'] ]] && [[ -n TAGS['title'] ]]; then
        do_tag "$( readlink -f /tmp/${FILENAME} )"
-       echo "DEBUG: Moving file to ${DWNLDIR}" >>$WGETLOGFILE
-       mv "/tmp/${FILENAME}" "${DWNLDIR}/${TAGS['artist_name']} - ${TAGS['title']}.mp3"
+       echo "$(date) DEBUG: Moving file to ${DWNLDIR}/${TAGS['artist_name']} - ${TAGS['title']}.mp3" >>$WGETLOGFILE
+       #movinig tmp file to download location for beets to proceed, removing special characters from filenames
+       # ${myvar//[\/\:\"\*\<\>\?\|\\[:cntrl:]]/,}
+       mv "/tmp/${FILENAME}" "${DWNLDIR}/${TAGS['artist_name']//[\/\:\"\*\<\>\?\|\\[:cntrl:]]/,} - ${TAGS['title']//[\/\:\"\*\<\>\?\|\\[:cntrl:]]/,}.mp3"
       else
-       echo "DEBUG: Moving file to ${DWNLDIR}" >>$WGETLOGFILE
+       echo "$(date) DEBUG: Moving non-tagged file as mp3 to ${DWNLDIR}" >>$WGETLOGFILE
        mv "/tmp/${FILENAME}" ${DWNLDIR}/$(echo $FILENAME|sed -n 's/\.tmp$/\.mp3/p')
       fi
      else # if download has failed
-      echo "WARN: There was an error on downloading ${FILENAME}." >>$WGETLOGFILE
+      echo "$(date) WARN: There was an error on downloading ${FILENAME}." >>$WGETLOGFILE
      fi
     else # link already expired, no reason to even try 
-     echo "WARN: seems link already expired. Skipping $URL" >>$WGETLOGFILE
+     echo "$(date) WARN: seems link already expired. Skipping $URL" >>$WGETLOGFILE
     fi
 done <$DWNLIST
-echo "Removing $DWNLIST" >>$WGETLOGFILE
+echo "$(date) Removing $DWNLIST" >>$WGETLOGFILE
 rm -f $DWNLIST
 }
 
@@ -148,22 +158,22 @@ rm -f $DWNLIST
 ### MAIN SECTION ###
 ## Managing download list and collected filelist with links
 if [ -e $DWNLIST ]; then
-    echo "INFO: DWNLIST $DWNLIST found" >>$WGETLOGFILE
+    echo "$(date) INFO: DWNLIST $DWNLIST found" >>$WGETLOGFILE
     do_download
 else
-    echo "INFO: DWNLIST not found (it's OK)" >>$WGETLOGFILE
+    echo "$(date) INFO: DWNLIST not found (it's OK)" >>$WGETLOGFILE
 fi
 if [ -e $FILELOG ]; then
     #echo "Temp lazy workaround to avoid running with dwlnd collector script at the same sec."
-    echo "INFO: new FILEFOG $FILELOG found, creating DWNLIST $DWNLIST" >>$WGETLOGFILE
+    echo "$(date) INFO: new FILEFOG $FILELOG found, creating DWNLIST $DWNLIST" >>$WGETLOGFILE
     sleep 5
     mv $FILELOG $DWNLIST
     if [ "$?" == 0 ] &&  [ -e $DWNLIST ]; then
-      echo "INFO: DWNLIST $DWNLIST created" >>$WGETLOGFILE
+      echo "$(date) INFO: DWNLIST $DWNLIST created" >>$WGETLOGFILE
       do_download
     fi
 fi
-echo "DEBUG: Script $0 completed" >>$WGETLOGFILE
+echo "$(date) DEBUG: Script $0 completed" >>$WGETLOGFILE
 exit 0
 
 #wget --no-verbose --continue --adjust-extension --wait=5 --random-wait --limit-rate=100k -U "$USERAGENT" -a "$WGETLOGFILE" -B "$BASEURL" -P $DWNLDIR -i $DWNLIST

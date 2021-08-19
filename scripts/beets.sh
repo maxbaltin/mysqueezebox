@@ -13,14 +13,14 @@ DWNLDIR=/mnt/dietpi_userdata/downloads
 
 #tagging:
 # beet import -qs /mnt/dietpi_userdata/downloads/
-echo "INFO: First run: importing to temporary DB as is"
+echo "$(date) INFO: First run: importing to temporary DB as is"
 /usr/local/bin/beet --config $BEETSDIR/config.yaml import $DWNLDIR
 #/usr/local/bin/beet --config $BEETSDIR/config.yaml bad
-echo "INFO: Second run: fingerprinting in the temporary DB"
+echo "$(date) INFO: Second run: fingerprinting in the temporary DB"
 /usr/local/bin/beet --config $BEETSDIR/config.yaml fingerprint
-echo "INFO: Third run: export successful matches to main DB"
+echo "$(date) INFO: Third run: export successful matches to main DB"
 /usr/local/bin/beet --config $BEETSDIR/export.yaml import $DWNLDIR
-echo "INFO: Clean up"
+echo "$(date) INFO: Clean up"
 /usr/local/bin/beet --config $BEETSDIR/config.yaml update
 /usr/local/bin/beet --config $BEETSDIR/config.yaml submit
 

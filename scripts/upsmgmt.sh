@@ -8,7 +8,7 @@ LOGSCRIPT="$(dirname $0)/upslog.sh"
 #--> |xargs /bin/bash $LOGSCRIPT  <-- or 
 #--> ($1.. is mandatory to avoid while loop): /bin/bash $LOGSCRIPT "Some message to log"
 VCGENCMD=$(which vcgencmd)
-SERVICES="squeezeboxserver squeezelite slmon"
+SERVICES="squeezeboxserver squeezelite slmon slplay"
 #SERVICES="squeezeboxserver squeezelite avahi-daemon gmrender"
 #Check "Driver=" field of the 'lsusb -t' output to collect list of devices to stop
 ### NOTE NOTE NOTE at the moment, name ONLY devices DIRECTLY connected to 4 RPi USB ports,
