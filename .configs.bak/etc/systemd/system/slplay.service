@@ -9,6 +9,9 @@ Type=forking
 #ExecStartPre=/bin/sleep 10
 #ExecStart=/opt/squeezebox/scripts/slfunctions.sh clear_playlist
 ExecStart=/opt/squeezebox/scripts/slfunctions.sh play_random 10 100
+ExecStartPost=-/opt/squeezebox/scripts/slcli.sh debug plugin.deezer DEBUG
+ExecStartPost=-/opt/squeezebox/scripts/slcli.sh debug plugin.deezer 1
+
 
 [Install]
 WantedBy=multi-user.target
