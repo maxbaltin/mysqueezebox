@@ -23,7 +23,8 @@ TAGGER=$(which mid3v2)
 ### in Squeezebox Server - Advanced - Logging settings, don't forget to mark checkbox of applying log settings on restart
 DEEZERDEBUG=1
 SQUEEZEBOXLOG=/var/log/squeezeboxserver/error.log
-SQUEEZEBOXBAK=/mnt/dietpi-backup/logfile_storage/squeezeboxserver/error.log
+SQUEEZEBOXBAK=/var/log/squeezeboxserver/error.log.1
+#SQUEEZEBOXBAK=/mnt/dietpi-backup/logfile_storage/squeezeboxserver/error.log
 if [ $DEEZERDEBUG == 1 ]; then 
     declare -A TAGS
     SLCLI="$(dirname $0)/slcli.sh"
@@ -98,23 +99,25 @@ while read URL; do
      if [ $DEEZERDEBUG == 1 ]; then
       ### collecting info from LMS log
       TAGFILE="/tmp/"$FILENAME".tags"
-        echo "$(date) DEBUG: creating ${TAGFILE}" >>$WGETLOGFILE
+      echo "$(date) DEBUG: creating ${TAGFILE}" >>$WGETLOGFILE
       ### grepping squeezeboxserver's deezer debug log with match limit 1 and 9 lines before the match, see .tags file samples
-	# utf decoding looks ugly, this is due to local awk implementation - no gensub, no back-reference supported, no {n,m} in regexp
+      ### utf decoding looks ugly, this is due to local awk implementation - no gensub, no back-reference supported, no {n,m} in regexp
       printf "%b\n" "$(grep -F -m1 -B9 "$URL" $SQUEEZEBOXLOG | awk -F' => |,$' '{gsub(/ /,"",$1); gsub(/\\x{/,"\\u0",$2); gsub(/\\x/,"\\u00",$2); gsub(/}/,"",$2); printf "%s\n", $1"\t"$2}')" >$TAGFILE
-      #grep -F -m1 -B9 "$URL" $SQUEEZEBOXLOG | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
-      if [ ! -s $TAGFILE ] && [ -f $SQUEEZEBOXBAK ]; then
+      if  ! $(grep -qm1 [[:alnum:]] "${TAGFILE}")  && [ -f $SQUEEZEBOXBAK ]; then
         printf "%b\n" "$(grep -F -m1 -B9 "$URL" $SQUEEZEBOXBAK | awk -F' => |,$' '{gsub(/ /,"",$1); gsub(/\\x{/,"\\u0",$2); gsub(/\\x/,"\\u00",$2); gsub(/}/,"",$2); printf "%s\n", $1"\t"$2}')" >$TAGFILE
-        #grep -F -m1 -B9 "$URL" $SQUEEZEBOXBAK | awk -F' => |,$' '{gsub(/ /,"",$1); print $1"\t"$2}' >$TAGFILE
       fi
       ### parsing tagged file to hash array
-        echo "$(date) DEBUG: parsing ${TAGFILE}" >>$WGETLOGFILE
+      echo "$(date) DEBUG: parsing ${TAGFILE}" >>$WGETLOGFILE
+      if  [[ -r ${TAGFILE} ]] && $(grep -qm1 [[:alnum:]] "${TAGFILE}"); then
         echo "$(date) DEBUG: tag file content:"  >>$WGETLOGFILE
-        [[ -r ${TAGFILE} ]] && cat ${TAGFILE} >>$WGETLOGFILE || echo "File not exists or not readable" >>$WGETLOGFILE
-      while read name val; do TAGS[$name]=$( echo $val | sed 's/"//g' ); done <$TAGFILE
-		for k in ${!TAGS[*]}; do echo "$k - ${TAGS[$k]}" >>$WGETLOGFILE ; done
-      ### skipping wget if the artist+title already in the LMS database
-      TAGS['lmsquery']=$( /bin/bash $SLCLI titles 0 10 tags:au  search:${TAGS['title']} |grep -iF "artist:${TAGS['artist_name']}" )
+	cat ${TAGFILE} >>$WGETLOGFILE
+        while read name val; do TAGS[$name]=$( echo $val | sed 's/"//g' ); done <$TAGFILE
+	for k in ${!TAGS[*]}; do echo "$k - ${TAGS[$k]}" >>$WGETLOGFILE ; done
+        ### skipping wget if the artist+title already in the LMS database
+        TAGS['lmsquery']=$( /bin/bash $SLCLI titles 0 10 tags:au  search:${TAGS['title']} |grep -iF "artist:${TAGS['artist_name']}" )
+      else
+	echo "File not exists, empty or not readable" >>$WGETLOGFILE
+      fi
       if [[ -n ${TAGS['lmsquery']} ]]; then
         echo "$(date) INFO: seems ${TAGS['artist_name']} - ${TAGS['title']} already in LMS database. Skipping $URL" >> $WGETLOGFILE
         do_tag "$( echo ${TAGS['lmsquery']} | grep -iF 'url' | cut -f4 | cut -d/ -f3- | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' | xargs echo -e )"
@@ -127,7 +130,7 @@ while read URL; do
     
     ### downloading itself:
     echo "$(date) DEBUG: Downloading ${FILENAME}" >>$WGETLOGFILE
-    wget --no-verbose --continue --wait=5 --random-wait --limit-rate=500k -U "$USERAGENT" -a "$WGETLOGFILE" -O /tmp/${FILENAME} $URL
+    wget --no-verbose --continue --wait=5 --random-wait --limit-rate=100k -U "$USERAGENT" -a "$WGETLOGFILE" -O /tmp/${FILENAME} $URL
     ### downloading completed, checking its status
     
      if [ "$?" == 0 ]; then
