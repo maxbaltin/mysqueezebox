@@ -31,7 +31,7 @@ paths:
         singleton: ${artist}/${title} ${format}_${bitrate}
 plugins: chroma mbsync duplicates fromfilename badfiles replaygain fetchart embedart
 chroma:
-    auto: no
+    auto: yes
 acoustid:
     apikey: DlrKDAjx8v
 replaygain:

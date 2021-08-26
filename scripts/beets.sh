@@ -1,4 +1,13 @@
 #! /bin/bash
+## This script intended for automatic tagging and Music library management
+## It does not resolve all the conditions but keeps it fully automatic
+## In case you see some files stuck in the download dir ${DWNLDIR},
+## run beets  manually in interactive mode:
+## 1. Place config.yaml from ../config.bak/ to ~/.config/beets, which is default; adjust library and target directory params as needed
+## 2. Run interactively with:
+##   beet import /mnt/dietpi_userdata/downloads
+## (the last param is path to source untagged music from)
+
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin/
 BEETSDIR="$(dirname $0)/beetscfg"
 DWNLDIR=/mnt/dietpi_userdata/downloads
