@@ -1,0 +1,22 @@
+/var/log/slscripts/*.log {
+  su dietpi users
+  rotate 12
+  weekly
+  compress
+  missingok
+  notifempty
+  maxsize 100K
+}
+
+/var/log/squeezeboxserver/*.log {
+  su squeezeboxserver users
+  rotate 12
+  weekly
+  compress
+  missingok
+  notifempty
+  maxsize 100K
+  copytruncate
+  create 0644 squeezeboxserver users
+}
+
